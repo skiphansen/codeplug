@@ -15,7 +15,7 @@ from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
 from cryptography.hazmat.primitives.hashes import Hash, SHA1
 from cryptography.hazmat.primitives.padding import PKCS7
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
-from OpenSSL.crypto import load_pkcs12
+from cryptography.hazmat.primitives.serialization.pkcs12 import load_pkcs12
 
 
 def _int_to_bytes(number):
@@ -61,8 +61,6 @@ def decode(data, key, iv):
 
 
 def build(payload, signing_key, key, iv, backend):
-    backend = signing_key._backend
-
     signature = signing_key.sign(payload.decode('utf-8').encode('utf-16-le'), PKCS1v15(), SHA1())
 
     sign_doc = etree.Element('SIGNATURE')
@@ -132,7 +130,7 @@ def _build_cmd(args):
     payload = etree.tostring(etree.parse(args.file))
 
     if 'signing_password' in config:
-        signing_key = load_pkcs12(base64.b64decode(config['signing_key']), base64.b64decode(config['signing_password'])).get_privatekey().to_cryptography_key()
+        signing_key = load_pkcs12(base64.b64decode(config['signing_key']),base64.b64decode(config['signing_password'])).key
     else:
         signing_key = load_pem_private_key(config['signing_key'].encode('ascii'), password=None, backend=backend)
 
